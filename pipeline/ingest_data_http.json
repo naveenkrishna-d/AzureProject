@@ -34,35 +34,11 @@
 				}
 			},
 			{
-				"name": "Set variable1",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "LookupJsondata ",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "lookupOutput",
-					"value": {
-						"value": "@string(activity('LookupJsondata ').output.value)",
-						"type": "Expression"
-					}
-				}
-			},
-			{
 				"name": "ForEach source related url and file name",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Set variable1",
+						"activity": "LookupJsondata ",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -76,7 +52,7 @@
 					},
 					"activities": [
 						{
-							"name": "Copy Cases and Deaths",
+							"name": "Copy data",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -137,7 +113,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "Marlabs_ecdc_europe_euDataLakeDs",
+									"referenceName": "MarlabsCovidDlDs",
 									"type": "DatasetReference"
 								}
 							]
