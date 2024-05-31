@@ -152,41 +152,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Marlabs_http_ecdc_europe_euDs')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Marlabs_http_ecdc_europe_euLs",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"relativeURL": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": {
-							"value": "@dataset().relativeURL",
-							"type": "Expression"
-						}
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Marlabs_http_ecdc_europe_euLs')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/Marlabs_ecdc_europe_euDataLakeDs')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -248,6 +213,41 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/MarlabsCovidDlLs')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Marlabs_http_ecdc_europe_euDs')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Marlabs_http_ecdc_europe_euLs",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"relativeURL": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": {
+							"value": "@dataset().relativeURL",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Marlabs_http_ecdc_europe_euLs')]"
 			]
 		},
 		{
@@ -360,7 +360,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"expression": {
-								"value": "@equals(activity('Get Metadata').output.columnCount,14)",
+								"value": "@equals(activity('Get Metadata').output.columnCount,13)",
 								"type": "Expression"
 							},
 							"ifFalseActivities": [
@@ -544,35 +544,11 @@
 						}
 					},
 					{
-						"name": "Set variable1",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "LookupJsondata ",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "lookupOutput",
-							"value": {
-								"value": "@string(activity('LookupJsondata ').output.value)",
-								"type": "Expression"
-							}
-						}
-					},
-					{
 						"name": "ForEach source related url and file name",
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "Set variable1",
+								"activity": "LookupJsondata",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -581,12 +557,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('LookupJsondata ').output",
+								"value": "@activity('LookupJsondata').output.value",
 								"type": "Expression"
 							},
 							"activities": [
 								{
-									"name": "Copy Cases and Deaths",
+									"name": "Copy data",
 									"type": "Copy",
 									"dependsOn": [],
 									"policy": {
@@ -647,7 +623,7 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "Marlabs_ecdc_europe_euDataLakeDs",
+											"referenceName": "MarlabsCovidDlDs",
 											"type": "DatasetReference",
 											"parameters": {}
 										}
@@ -670,7 +646,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ingest_list_json')]",
 				"[concat(variables('factoryId'), '/datasets/Marlabs_http_ecdc_europe_euDs')]",
-				"[concat(variables('factoryId'), '/datasets/Marlabs_ecdc_europe_euDataLakeDs')]"
+				"[concat(variables('factoryId'), '/datasets/MarlabsCovidDlDs')]"
 			]
 		}
 	]
