@@ -38,7 +38,7 @@
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "LookupJsondata ",
+						"activity": "LookupJsondata",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -47,7 +47,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('LookupJsondata ').output",
+						"value": "@activity('LookupJsondata').output.value",
 						"type": "Expression"
 					},
 					"activities": [
