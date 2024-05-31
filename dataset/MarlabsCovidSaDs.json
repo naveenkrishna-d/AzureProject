@@ -1,0 +1,27 @@
+{
+	"name": "MarlabsCovidSaDs",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "MarlabsCovidSaLs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "population_by_age.tsv.gz",
+				"container": "raw"
+			},
+			"columnDelimiter": "\t",
+			"rowDelimiter": "\n",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Optimal",
+			"escapeChar": "\\",
+			"firstRowAsHeader": false,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

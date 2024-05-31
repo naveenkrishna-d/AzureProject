@@ -1,0 +1,206 @@
+{
+	"name": "Copy Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "check if file exist",
+				"type": "Validation",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "MarlabsCovidSaDs",
+						"type": "DatasetReference"
+					},
+					"timeout": "0.00:10:00",
+					"sleep": 30,
+					"minimumSize": 1024
+				}
+			},
+			{
+				"name": "Get Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "check if file exist",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "MarlabsCovidSaDs",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"columnCount",
+						"exists",
+						"size"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "If Column count matches",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Get Metadata').output.columnCount,14)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Web1",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "POST",
+								"url": "https://prod-60.eastus.logic.azure.com:443/workflows/3cc1740526a840b680e875aadc54f94a/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=nU6nUjo0U_wC9douYQOc0PJkDotaAzutMgMDBSR_yU8",
+								"body": {
+									"message": "This is a custom dynamic message from your pipeline with run ID @{pipeline().RunId}.",
+									"dataFactoryName": "@{pipeline().DataFactory}",
+									"pipelineName": "@{pipeline().Pipeline}",
+									"receiver": "naveenkrishna620@gmail.com}"
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Copy data",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "MarlabsCovidSaDs",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "MarlabsCovidDlDs",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Delete",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Copy data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "MarlabsCovidSaDs",
+									"type": "DatasetReference"
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "MarlabsCovidSaLs",
+										"type": "LinkedServiceReference"
+									}
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2024-05-31T00:52:34Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
