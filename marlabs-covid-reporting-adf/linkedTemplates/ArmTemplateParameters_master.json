@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "marlabs-covid-reporting-adf"
+		},
+		"MarlabsCovidDlLs_accountKey": {
+			"value": ""
+		},
+		"MarlabsCovidSaLs_connectionString": {
+			"value": ""
+		},
+		"MarlabsCovidDlLs_properties_typeProperties_url": {
+			"value": "https://marlabscoviddl.dfs.core.windows.net/"
+		},
+		"Marlabs_http_ecdc_europe_euLs_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/pamuba/"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
