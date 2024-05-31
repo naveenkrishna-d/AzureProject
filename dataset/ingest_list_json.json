@@ -1,0 +1,29 @@
+{
+	"name": "ingest_list_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "MarlabsCovidDlLs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "ingest_list.json",
+				"fileSystem": "target"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"sourceRelatedURL": {
+					"type": "string"
+				},
+				"sinkFileName": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
