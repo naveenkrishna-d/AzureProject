@@ -1,0 +1,22 @@
+{
+	"name": "Marlabs_http_ecdc_europe_euDs",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Marlabs_http_ecdc_europe_euLs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "PythonDE/main/cases_deaths.csv"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
