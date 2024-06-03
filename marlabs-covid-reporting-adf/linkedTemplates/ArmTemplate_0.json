@@ -560,6 +560,7 @@
 								"value": "@activity('LookupJsondata').output.value",
 								"type": "Expression"
 							},
+							"isSequential": false,
 							"activities": [
 								{
 									"name": "Copy data",
@@ -628,6 +629,30 @@
 											"parameters": {}
 										}
 									]
+								},
+								{
+									"name": "Set variable1",
+									"type": "SetVariable",
+									"dependsOn": [
+										{
+											"activity": "Copy data",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "lookupOutput",
+										"value": {
+											"value": "@item().sourceRelatedURL",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
