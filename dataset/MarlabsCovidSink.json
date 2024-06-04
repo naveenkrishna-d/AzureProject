@@ -1,0 +1,22 @@
+{
+	"name": "MarlabsCovidSink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "MarlabsCovidDlLs",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "population"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

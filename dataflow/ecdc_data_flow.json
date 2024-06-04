@@ -6,25 +6,50 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "ingest_list_json",
+						"referenceName": "MarlabsCovidDlDs",
 						"type": "DatasetReference"
 					},
 					"name": "CasesAndDeaths"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "MarlabsCovidSink",
+						"type": "DatasetReference"
+					},
+					"name": "sinkFilter"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filterEuropeOnly"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
-				"          sourceRelatedURL as string,",
-				"          sinkFileName as string",
+				"          country as string,",
+				"          country_code as string,",
+				"          continent as string,",
+				"          population as integer,",
+				"          indicator as string,",
+				"          daily_count as short,",
+				"          date as date,",
+				"          rate_14_day as double,",
+				"          source as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false,",
-				"     documentForm: 'documentPerLine',",
-				"     partitionBy('roundRobin', 2)) ~> CasesAndDeaths"
+				"     ignoreNoFilesFound: false) ~> CasesAndDeaths",
+				"CasesAndDeaths filter(continent == 'Europe' && not(isNull(country_code))) ~> filterEuropeOnly",
+				"filterEuropeOnly sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkFilter"
 			]
 		}
 	}
