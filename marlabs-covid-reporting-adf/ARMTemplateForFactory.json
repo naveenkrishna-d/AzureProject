@@ -250,6 +250,53 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/dataflows pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow Covid Cases",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ecdc_data_flow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CasesAndDeaths": {},
+									"CountryLookup": {},
+									"CasesDeathsSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ecdc_data_flow')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ingest_data_http')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -478,6 +525,33 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/MarlabsCovidSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "MarlabsCovidDlLs",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "population"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/MarlabsCovidDlLs')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Marlabs_ecdc_europe_euDataLakeDs')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -689,6 +763,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "CasesAndDeaths"
+						},
+						{
+							"dataset": {
+								"referenceName": "MarlabsCountryLookupDs",
+								"type": "DatasetReference"
+							},
+							"name": "CountryLookup"
 						}
 					],
 					"sinks": [
@@ -697,12 +778,24 @@
 								"referenceName": "MarlabsCovidSink",
 								"type": "DatasetReference"
 							},
-							"name": "sinkFilter"
+							"name": "CasesDeathsSink"
 						}
 					],
 					"transformations": [
 						{
 							"name": "filterEuropeOnly"
+						},
+						{
+							"name": "selectOnlyRequiredField"
+						},
+						{
+							"name": "PivotCounts"
+						},
+						{
+							"name": "lookupCountry"
+						},
+						{
+							"name": "ModifyColumn"
 						}
 					],
 					"scriptLines": [
@@ -721,24 +814,73 @@
 						"     validateSchema: false,",
 						"     inferDriftedColumnTypes: true,",
 						"     ignoreNoFilesFound: false) ~> CasesAndDeaths",
+						"source(output(",
+						"          country as string,",
+						"          country_code_2_digit as string,",
+						"          country_code_3_digit as string,",
+						"          continent as string,",
+						"          population as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> CountryLookup",
 						"CasesAndDeaths filter(continent == 'Europe' && not(isNull(country_code))) ~> filterEuropeOnly",
-						"filterEuropeOnly sink(allowSchemaDrift: true,",
+						"filterEuropeOnly select(mapColumn(",
+						"          country,",
+						"          country_code,",
+						"          continent,",
+						"          population,",
+						"          indicator,",
+						"          daily_count,",
+						"          source,",
+						"          each(match(name=='date'),",
+						"               \"reported_date\" = $$)",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectOnlyRequiredField",
+						"selectOnlyRequiredField pivot(groupBy(country,",
+						"          country_code,",
+						"          population,",
+						"          source,",
+						"          reported_date),",
+						"     pivotBy(indicator, ['confirmed cases', 'deaths']),",
+						"     count = sum(daily_count),",
+						"     columnNaming: '$N_$V',",
+						"     lateral: true) ~> PivotCounts",
+						"PivotCounts, CountryLookup lookup(country_code == country_code_3_digit,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookupCountry",
+						"lookupCountry select(mapColumn(",
+						"          country = PivotCounts@country,",
+						"          country_code_2_digit,",
+						"          country_code_3_digit,",
+						"          population = PivotCounts@population,",
+						"          {cases count} = {count_confirmed cases},",
+						"          count_deaths,",
+						"          reported_date,",
+						"          source",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> ModifyColumn",
+						"ModifyColumn sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     umask: 0022,",
 						"     preCommands: [],",
 						"     postCommands: [],",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sinkFilter"
+						"     skipDuplicateMapOutputs: true) ~> CasesDeathsSink"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/MarlabsCovidDlDs')]",
+				"[concat(variables('factoryId'), '/datasets/MarlabsCountryLookupDs')]",
 				"[concat(variables('factoryId'), '/datasets/MarlabsCovidSink')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/MarlabsCovidSink')]",
+			"name": "[concat(parameters('factoryName'), '/MarlabsCountryLookupDs')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -751,63 +893,39 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileSystem": "population"
+						"fileName": "country_lookup.csv",
+						"fileSystem": "lookup"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
+				"schema": [
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "country_code_2_digit",
+						"type": "String"
+					},
+					{
+						"name": "country_code_3_digit",
+						"type": "String"
+					},
+					{
+						"name": "continent",
+						"type": "String"
+					},
+					{
+						"name": "population",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/MarlabsCovidDlLs')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dataflows pipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Data flow Covid Cases",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "ecdc_data_flow",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"CasesAndDeaths": {},
-									"sinkFilter": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/ecdc_data_flow')]"
 			]
 		}
 	]
