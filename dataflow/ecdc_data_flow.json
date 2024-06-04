@@ -1,0 +1,31 @@
+{
+	"name": "ecdc_data_flow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ingest_list_json",
+						"type": "DatasetReference"
+					},
+					"name": "CasesAndDeaths"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          sourceRelatedURL as string,",
+				"          sinkFileName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'documentPerLine',",
+				"     partitionBy('roundRobin', 2)) ~> CasesAndDeaths"
+			]
+		}
+	}
+}
