@@ -39,6 +39,12 @@
 				},
 				{
 					"name": "ConditionalSplit"
+				},
+				{
+					"name": "derivedECDCYearWeek"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -110,7 +116,9 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectRequiredField2",
 				"selectRequiredField2 split(indicator == 'Daily hospital occupancy' || indicator == 'Daily ICU occupancy',",
-				"     disjoint: false) ~> ConditionalSplit@(Daily, Weekly)"
+				"     disjoint: false) ~> ConditionalSplit@(Daily, Weekly)",
+				"DimDateSource derive(ecdc_year_week = toString(year) + '-W' + lpad(toString(week_of_year),2,'0')) ~> derivedECDCYearWeek",
+				"derivedECDCYearWeek aggregate() ~> aggregate1"
 			]
 		}
 	}
