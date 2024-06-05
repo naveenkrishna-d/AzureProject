@@ -24,13 +24,6 @@
 						"type": "DatasetReference"
 					},
 					"name": "DimDateSource"
-				},
-				{
-					"dataset": {
-						"referenceName": "MarlabsDimDate",
-						"type": "DatasetReference"
-					},
-					"name": "source1"
 				}
 			],
 			"sinks": [],
@@ -46,9 +39,6 @@
 				},
 				{
 					"name": "ConditionalSplit"
-				},
-				{
-					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -77,9 +67,6 @@
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> DimDateSource",
-				"source(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> source1",
 				"HospitalAdmissions select(mapColumn(",
 				"          country,",
 				"          indicator,",
@@ -109,8 +96,7 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> selectRequiredField2",
 				"selectRequiredField2 split(indicator == 'Daily hospital occupancy' || indicator == 'Daily ICU occupancy',",
-				"     disjoint: false) ~> ConditionalSplit@(Daily, Weekly)",
-				"DimDateSource derive() ~> derivedColumn1"
+				"     disjoint: false) ~> ConditionalSplit@(Daily, Weekly)"
 			]
 		}
 	}
