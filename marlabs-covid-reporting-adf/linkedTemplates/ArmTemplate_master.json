@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "marlabs-covid-reporting-adf"
 		},
+		"MarlabsAzureDatabricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'MarlabsAzureDatabricks'"
+		},
 		"MarlabsCovidDlLs_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'MarlabsCovidDlLs'"
@@ -15,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'MarlabsCovidSaLs'"
 		},
+		"AzureSqlDatabase1_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlDatabase1'"
+		},
 		"MarlabsCovidDlLs_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://marlabscoviddl.dfs.core.windows.net/"
@@ -22,6 +30,18 @@
 		"Marlabs_http_ecdc_europe_euLs_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://raw.githubusercontent.com/pamuba/"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "marlabscovidsqlserver.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "covid"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "marlabsadmin"
 		},
 		"containerUri": {
 			"type": "string",
@@ -50,21 +70,56 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"MarlabsAzureDatabricks_accessToken": {
+						"value": "[parameters('MarlabsAzureDatabricks_accessToken')]"
+					},
 					"MarlabsCovidDlLs_accountKey": {
 						"value": "[parameters('MarlabsCovidDlLs_accountKey')]"
 					},
 					"MarlabsCovidSaLs_connectionString": {
 						"value": "[parameters('MarlabsCovidSaLs_connectionString')]"
 					},
+					"AzureSqlDatabase1_password": {
+						"value": "[parameters('AzureSqlDatabase1_password')]"
+					},
 					"MarlabsCovidDlLs_properties_typeProperties_url": {
 						"value": "[parameters('MarlabsCovidDlLs_properties_typeProperties_url')]"
 					},
 					"Marlabs_http_ecdc_europe_euLs_properties_typeProperties_url": {
 						"value": "[parameters('Marlabs_http_ecdc_europe_euLs_properties_typeProperties_url')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_server')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_database')]"
+					},
+					"AzureSqlDatabase1_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSqlDatabase1_properties_typeProperties_userName')]"
 					}
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "marlabs-covid-reporting-adf_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'marlabs-covid-reporting-adf_ArmTemplate_0')]"
+			]
 		}
 	]
 }

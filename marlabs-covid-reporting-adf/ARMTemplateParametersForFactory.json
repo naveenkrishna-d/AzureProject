@@ -5,10 +5,16 @@
 		"factoryName": {
 			"value": "marlabs-covid-reporting-adf"
 		},
+		"MarlabsAzureDatabricks_accessToken": {
+			"value": ""
+		},
 		"MarlabsCovidDlLs_accountKey": {
 			"value": ""
 		},
 		"MarlabsCovidSaLs_connectionString": {
+			"value": ""
+		},
+		"AzureSqlDatabase1_password": {
 			"value": ""
 		},
 		"MarlabsCovidDlLs_properties_typeProperties_url": {
@@ -16,6 +22,15 @@
 		},
 		"Marlabs_http_ecdc_europe_euLs_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/pamuba/"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"value": "marlabscovidsqlserver.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"value": "covid"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"value": "marlabsadmin"
 		}
 	}
 }
